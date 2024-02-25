@@ -1,5 +1,8 @@
 package org.example
 
+import org.example.uci.UciController
+
 fun main() {
-    println("Hello World!")
+    val controller = UciController()
+    controller.startProcessing()
 }
