@@ -25,6 +25,7 @@ class Board {
     private fun toBoardIndex(row: Int, col: Int) = row*8 + col
     private fun toBoardIndex(col: Char, row: Char) = toBoardIndex(row - '0' - 1, col - 'a')
     private fun toBoardIndex(field:String) = toBoardIndex(field[0], field[1])
+    private fun toFieldString(fieldIndex:Int) = ('a' + fieldIndex % 8).toString() + ('1' + fieldIndex / 8).toString()
 
 
     private fun addPiece(pieceType: PieceType, color: Color, pos: Int) {
@@ -56,11 +57,10 @@ class Board {
     }
 
     fun initByFen(fenString: String) {
-        //"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
         val fen = FenBoard(fenString)
         fen.fillBoardByFen()
-        colorToMove = if (fen.whiteToMove) Color.WHITE else Color.BLACK
         fen.setCastling()
+        colorToMove = if (fen.whiteToMove) Color.WHITE else Color.BLACK
         epFieldIndex = if (fen.epField != null) toBoardIndex(fen.epField) else -1
         halfMoveCount = fen.halfMoveCount
         fullMoveCount = fen.fullMoveCount
@@ -82,8 +82,6 @@ class Board {
         }
     }
 
-
-
     fun toAsciiBoard(): String {
         val sb = StringBuilder()
 
@@ -93,13 +91,43 @@ class Board {
             }
             sb.append("\n")
         }
-        sb.append("$colorToMove to move\n")
-        sb.append("ep: $epFieldIndex\n")
-        sb.append("king  castling: $kingCastling\n")
-        sb.append("queen castling: $kingCastling\n")
-        sb.append("Half Move count: $halfMoveCount\n")
-        sb.append("Full Move count: $fullMoveCount\n")
+        sb.append(toFenString())
         return sb.toString()
     }
 
+    fun toFenString(): String {
+        val fenPosition = (7 downTo 0).joinToString ("/"){ row ->
+            val sb = StringBuilder()
+            var emptyCount = 0
+            for (col in 0..7) {
+                if (board[toBoardIndex(row, col)].isEmpty()) {
+                    emptyCount++
+                } else {
+                    if (emptyCount > 0)
+                        sb.append(emptyCount)
+                    emptyCount = 0
+                    sb.append(board[toBoardIndex(row, col)].toString())
+                }
+            }
+            if (emptyCount > 0)
+                sb.append(emptyCount)
+            sb.toString()
+        }
+        val sb = StringBuilder(fenPosition)
+        sb.append(" ")
+        sb.append(if (colorToMove == Color.WHITE) "w" else "b")
+        sb.append(" ")
+        sb.append(if (epFieldIndex >= 0) toFieldString(epFieldIndex) else "-")
+        sb.append(" ")
+        if (Color.WHITE in kingCastling) sb.append("K")
+        if (Color.WHITE in queenCastling) sb.append("Q")
+        if (Color.BLACK in kingCastling) sb.append("k")
+        if (Color.BLACK in queenCastling) sb.append("q")
+        if (kingCastling.isEmpty() && queenCastling.isEmpty()) sb.append("-")
+        sb.append(" ")
+        sb.append(halfMoveCount)
+        sb.append(" ")
+        sb.append(fullMoveCount)
+        return sb.toString()
+    }
 }
