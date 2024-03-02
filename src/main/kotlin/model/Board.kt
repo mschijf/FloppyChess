@@ -83,16 +83,12 @@ class Board {
     }
 
     fun toAsciiBoard(): String {
-        val sb = StringBuilder()
-
-        for (row in 7 downTo 0) {
-            for (col in 0..7) {
-                sb.append(board[toBoardIndex(row, col)].toString())
+        val asciiBoard = (7 downTo 0).joinToString ("\n"){ row ->
+            (0..7).joinToString (""){ col ->
+                board[toBoardIndex(row, col)].toString()
             }
-            sb.append("\n")
         }
-        sb.append(toFenString())
-        return sb.toString()
+        return asciiBoard + "\n" + toFenString()
     }
 
     fun toFenString(): String {
