@@ -3,26 +3,25 @@ package org.example.model.piece
 import org.example.model.Board
 import org.example.model.Color
 import org.example.model.Move
+import org.example.model.PieceType
 
 class Rook(
     board: Board,
     pos: Int,
     color: Color
-): Piece(board, pos, color) {
+): Piece(board, pos, PieceType.ROOK, color) {
 
     override fun getMoveCandidates(): List<Move> {
         val result = mutableListOf<Move>()
-        for (direction in listOf(-1, 1, -8, 8)) {
+        for (direction in Board.orthogonalDirections) {
             var newPos = pos+direction
             while (board[newPos].isEmpty()) {
-                result + Move(pos, newPos)
+                result + Move(this, pos, newPos)
             }
             if (board[newPos].hasColor(color.otherColor())) {
-                result + Move(pos, newPos)
+                result + Move(this, pos, newPos)
             }
         }
         return result
     }
-
-    override fun toString() = if (color == Color.WHITE) "R" else "r"
 }

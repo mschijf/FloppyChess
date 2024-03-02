@@ -9,6 +9,7 @@ class UciController {
 
     fun startProcessing() {
         println("Start processing")
+        handleShow()
         while(continueCommunicate) {
             print("> ")
             val input = readln()

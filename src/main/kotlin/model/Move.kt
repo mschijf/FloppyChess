@@ -1,4 +1,10 @@
 package org.example.model
 
-class Move(val from: Int, val to: Int) {
+import org.example.model.Board
+import org.example.model.piece.Piece
+
+data class Move(val piece: Piece, val from: Int, val to: Int) {
+    override fun toString(): String {
+        return piece.toString() + Board.toFieldString(from) + Board.toFieldString(to)
+    }
 }
