@@ -1,7 +1,8 @@
-package org.example.model
+package model
 
-import org.example.Tools.Fen.FenBoard
-import org.example.model.piece.*
+import Tools.Fen.FenBoard
+import model.Color
+import model.piece.*
 
 //  132	133	134	135	136	137	138	139	140	141	142	143
 //  120	121	122	123	124	125	126	127	128	129	130	131

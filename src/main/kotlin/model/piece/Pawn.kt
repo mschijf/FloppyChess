@@ -1,9 +1,9 @@
-package org.example.model.piece
+package model.piece
 
-import org.example.model.Board
-import org.example.model.Color
-import org.example.model.Move
-import org.example.model.PieceType
+import model.Board
+import model.Color
+import model.Move
+import model.PieceType
 
 class Pawn(
     board: Board,

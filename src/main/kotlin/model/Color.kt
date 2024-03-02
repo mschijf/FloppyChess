@@ -1,4 +1,4 @@
-package org.example.model
+package model
 
 enum class Color {
     WHITE, BLACK, NONE;

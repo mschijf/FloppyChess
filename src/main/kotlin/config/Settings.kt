@@ -1,4 +1,4 @@
-package org.example.config
+package config
 
 object Settings {
     val name = "FloppyChess"

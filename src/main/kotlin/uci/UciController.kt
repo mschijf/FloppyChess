@@ -1,7 +1,7 @@
-package org.example.uci
+package uci
 
-import org.example.config.Settings
-import org.example.model.Board
+import config.Settings
+import model.Board
 
 class UciController {
     private var continueCommunicate = true

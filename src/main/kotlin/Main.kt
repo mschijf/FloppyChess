@@ -1,6 +1,4 @@
-package org.example
-
-import org.example.uci.UciController
+import uci.UciController
 
 fun main() {
     val controller = UciController()

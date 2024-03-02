@@ -1,3 +1,3 @@
-package org.example.uci
+package uci
 
 class UciCommandException(msg: String): Exception(msg)

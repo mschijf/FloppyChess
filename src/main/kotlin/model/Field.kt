@@ -1,6 +1,6 @@
-package org.example.model
+package model
 
-import org.example.model.piece.Piece
+import model.piece.Piece
 
 class Field(
     val isBorder: Boolean,

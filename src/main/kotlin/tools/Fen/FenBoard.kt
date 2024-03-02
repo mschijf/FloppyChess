@@ -1,4 +1,4 @@
-package org.example.Tools.Fen
+package Tools.Fen
 
 class FenBoard(fenString: String) {
     private val fenParts = checkFenSyntax(fenString)

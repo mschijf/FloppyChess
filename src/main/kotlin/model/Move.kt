@@ -1,7 +1,7 @@
-package org.example.model
+package model
 
-import org.example.model.Board
-import org.example.model.piece.Piece
+import model.piece.Piece
+
 
 data class Move(val piece: Piece, val from: Int, val to: Int) {
     override fun toString(): String {
