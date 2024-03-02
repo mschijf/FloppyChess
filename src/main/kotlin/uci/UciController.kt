@@ -28,7 +28,7 @@ class UciController {
             "ponderhit"  -> println(command.uppercase())
             "quit"  -> handleCommandQuit()
             "show" -> handleShow()
-            else -> println("$command NOT IMPLEMENTED, ignored")
+            else -> throw UciCommandException("$command NOT IMPLEMENTED, ignored")
         }
     }
 
@@ -47,21 +47,24 @@ class UciController {
     }
 
     private fun handleCommandPosition(positionCommand: String) {
-        val position = positionCommand.substringAfter("position ").substringBefore(" ")
-        val moveStringList = positionCommand.substringAfter("position ").substringAfter(" ").split(" ")
+        val position = positionCommand.substringAfter("position ").substringBefore(" moves")
+        val moveStringList = positionCommand.substringAfter("moves ").split(" ")
         //position startpos moves e2e4 e7e5
-        if (position == "startpos") {
-            board.init()
+        //position fen rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1 moves ....
+        if (position.startsWith("startpos")) {
+            board.setStartPos()
+        } else if (position.startsWith("fen")) {
+            board.initByFen(position.substringAfter("fen "))
         } else {
-            board.init()
+            throw UciCommandException("Unexpected syntax in position command")
         }
     }
 
     private fun handleCommandUciNewGame() {
-        board.init()
+        board.setStartPos()
     }
 
     private fun handleShow() {
-        println (board.toAscciiBoard())
+        println (board.toAsciiBoard())
     }
 }

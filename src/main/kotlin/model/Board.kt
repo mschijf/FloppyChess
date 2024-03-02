@@ -1,15 +1,31 @@
 package org.example.model
 
+import org.example.Tools.Fen.FenBoard
 import org.example.model.piece.*
 
 class Board {
 
     private val emptyField = NoPiece(this)
     private val board = Array<Piece>(64) { emptyField }
+    private var colorToMove = Color.WHITE
+    private var epFieldIndex = -1
+    private var kingCastling = mutableSetOf<Color>()
+    private var queenCastling = mutableSetOf<Color>()
+    private var halfMoveCount = 0
+    private var fullMoveCount = 0
 
     operator fun get(index: Int): Piece {
         return board[index]
     }
+
+    init {
+        setStartPos()
+    }
+
+    private fun toBoardIndex(row: Int, col: Int) = row*8 + col
+    private fun toBoardIndex(col: Char, row: Char) = toBoardIndex(row - '0' - 1, col - 'a')
+    private fun toBoardIndex(field:String) = toBoardIndex(field[0], field[1])
+
 
     private fun addPiece(pieceType: PieceType, color: Color, pos: Int) {
         board[pos] = when (pieceType) {
@@ -23,40 +39,52 @@ class Board {
         }
     }
 
-    private fun toBoardIndex(row: Int, col: Int) = row*8 + col
+    private fun addPiece(pieceChar: Char, pos: Int) {
+        val pieceType = PieceType.ofChar(pieceChar)
+        val color = if (pieceChar.isLowerCase()) Color.BLACK else Color.WHITE
+        addPiece(pieceType, color, pos)
+    }
 
-    fun init() {
-        for (row in 0..7) {
-            for (col in 0..7) {
-                board[toBoardIndex(row, col)] = emptyField
-            }
-        }
-        addPiece(PieceType.ROOK, Color.WHITE, toBoardIndex(0,0))
-        addPiece(PieceType.KNIGHT, Color.WHITE, toBoardIndex(0,1))
-        addPiece(PieceType.BISHOP, Color.WHITE, toBoardIndex(0,2))
-        addPiece(PieceType.QUEEN, Color.WHITE, toBoardIndex(0,3))
-        addPiece(PieceType.KING, Color.WHITE, toBoardIndex(0,4))
-        addPiece(PieceType.BISHOP, Color.WHITE, toBoardIndex(0,5))
-        addPiece(PieceType.KNIGHT, Color.WHITE, toBoardIndex(0,6))
-        addPiece(PieceType.ROOK, Color.WHITE, toBoardIndex(0,7))
-        for (col in 0..7) {
-            addPiece(PieceType.PAWN, Color.WHITE, toBoardIndex(1,col))
-        }
-
-        addPiece(PieceType.ROOK, Color.BLACK, toBoardIndex(7,0))
-        addPiece(PieceType.KNIGHT, Color.BLACK, toBoardIndex(7,1))
-        addPiece(PieceType.BISHOP, Color.BLACK, toBoardIndex(7,2))
-        addPiece(PieceType.QUEEN, Color.BLACK, toBoardIndex(7,3))
-        addPiece(PieceType.KING, Color.BLACK, toBoardIndex(7,4))
-        addPiece(PieceType.BISHOP, Color.BLACK, toBoardIndex(7,5))
-        addPiece(PieceType.KNIGHT, Color.BLACK, toBoardIndex(7,6))
-        addPiece(PieceType.ROOK, Color.BLACK, toBoardIndex(7,7))
-        for (col in 0..7) {
-            addPiece(PieceType.PAWN, Color.BLACK, toBoardIndex(6,col))
+    private fun clearBoard() {
+        for (index in 0..63) {
+            board[index] = emptyField
         }
     }
 
-    fun toAscciiBoard(): String {
+    fun setStartPos() {
+        initByFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0")
+    }
+
+    fun initByFen(fenString: String) {
+        //"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
+        val fen = FenBoard(fenString)
+        fen.fillBoardByFen()
+        colorToMove = if (fen.whiteToMove) Color.WHITE else Color.BLACK
+        fen.setCastling()
+        epFieldIndex = if (fen.epField != null) toBoardIndex(fen.epField) else -1
+        halfMoveCount = fen.halfMoveCount
+        fullMoveCount = fen.fullMoveCount
+    }
+
+    private fun FenBoard.setCastling() {
+        kingCastling.clear()
+        queenCastling.clear()
+        if (this.whiteKingCastlingAllowed) kingCastling += Color.WHITE
+        if (this.blackKingCastlingAllowed) kingCastling += Color.BLACK
+        if (this.whiteQueenCastlingAllowed) queenCastling += Color.WHITE
+        if (this.blackQueenCastlingAllowed) queenCastling += Color.BLACK
+    }
+
+    private fun FenBoard.fillBoardByFen() {
+        clearBoard()
+        this.occupiedFields.forEach { (fieldString, pieceChar) ->
+            addPiece(pieceChar, toBoardIndex(fieldString))
+        }
+    }
+
+
+
+    fun toAsciiBoard(): String {
         val sb = StringBuilder()
 
         for (row in 7 downTo 0) {
@@ -65,6 +93,12 @@ class Board {
             }
             sb.append("\n")
         }
+        sb.append("$colorToMove to move\n")
+        sb.append("ep: $epFieldIndex\n")
+        sb.append("king  castling: $kingCastling\n")
+        sb.append("queen castling: $kingCastling\n")
+        sb.append("Half Move count: $halfMoveCount\n")
+        sb.append("Full Move count: $fullMoveCount\n")
         return sb.toString()
     }
 
