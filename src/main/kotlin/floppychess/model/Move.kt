@@ -1,6 +1,6 @@
-package model
+package floppychess.model
 
-import model.piece.Piece
+import floppychess.model.piece.Piece
 
 
 data class Move(val piece: Piece, val from: Int, val to: Int) {

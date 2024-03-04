@@ -1,4 +1,4 @@
-package model
+package floppychess.model
 
 enum class PieceType(val pieceChar: Char) {
     KING('k'),

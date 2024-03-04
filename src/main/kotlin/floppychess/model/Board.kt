@@ -1,26 +1,11 @@
-package model
+package floppychess.model
 
 import Tools.Fen.FenBoard
-import model.Color
-import model.piece.*
-
-//  132	133	134	135	136	137	138	139	140	141	142	143
-//  120	121	122	123	124	125	126	127	128	129	130	131
-//  108	109	110	111	112	113	114	115	116	117	118	119
-//  96	97	98	99	100	101	102	103	104	105	106	107
-//  84	85	86	87	88	89	90	91	92	93	94	95
-//  72	73	74	75	76	77	78	79	80	81	82	83
-//  60	61	62	63	64	65	66	67	68	69	70	71
-//  48	49	50	51	52	53	54	55	56	57	58	59
-//  36	37	38	39	40	41	42	43	44	45	46	47
-//  24	25	26	27	28	29	30	31	32	33	34	35
-//  12	13	14	15	16	17	18	19	20	21	22	23
-//  0	1	2	3	4	5	6	7	8	9	10	11
+import floppychess.model.piece.*
 
 class Board {
 
-    private val emptyField = NoPiece(this)
-    private val board = Array<Piece>(144) { emptyField }
+    private val board = List<Field>(64) { index -> Field(index) }
     private var colorToMove = Color.WHITE
     private var epFieldIndex = -1
     private var kingCastling = mutableSetOf<Color>()
@@ -28,7 +13,7 @@ class Board {
     private var halfMoveCount = 0
     private var fullMoveCount = 0
 
-    operator fun get(index: Int): Piece {
+    operator fun get(index: Int): Field {
         return board[index]
     }
 
@@ -37,28 +22,24 @@ class Board {
     }
 
     companion object {
-        private fun toBoardIndex(row: Int, col: Int) = (2+row) * 12 + (col + 2)
-        private fun toBoardIndex(field: String) = toBoardIndex(field[1]-'1', field[0]-'a')
-        fun toFieldString(fieldIndex: Int) = ('a' + (fieldIndex % 12) - 2 ).toString() + ('1' + (fieldIndex / 12) - 2).toString()
-        fun onBoard(fieldIndex: Int): Boolean = fieldIndex / 12 in (2..9) && fieldIndex % 12 in (2..9)
-
-        val knightDirections = listOf(10, 23, 25, 14, -10, -23, -25, -14)
-        val orthogonalDirections = listOf(12, 1, -12, -1)
-        val diagonalDirections = listOf(11, 13, -11, -13)
-        val allDirections = orthogonalDirections + diagonalDirections
+        private fun toBoardIndex(row: Int, col: Int) = row * 8 + col
+        fun toBoardIndex(field: String) = toBoardIndex(field[1]-'1', field[0]-'a')
+        fun toFieldString(fieldIndex: Int) = ('a' + (fieldIndex % 8)).toString() + ('1' + (fieldIndex / 8)).toString()
     }
 
 
     private fun addPiece(pieceType: PieceType, color: Color, pos: Int) {
-        board[pos] = when (pieceType) {
-            PieceType.KING -> King(this, pos, color)
-            PieceType.QUEEN -> Queen(this, pos, color)
-            PieceType.ROOK -> Rook(this, pos, color)
-            PieceType.BISHOP -> Bishop(this, pos, color)
-            PieceType.KNIGHT -> Knight(this, pos, color)
-            PieceType.PAWN -> Pawn(this, pos, color)
-            PieceType.NONE -> throw Exception("Try To add a NoPiece")
-        }
+        board[pos].setPiece(
+            when (pieceType) {
+                PieceType.KING -> King(this, pos, color)
+                PieceType.QUEEN -> Queen(this, pos, color)
+                PieceType.ROOK -> Rook(this, pos, color)
+                PieceType.BISHOP -> Bishop(this, pos, color)
+                PieceType.KNIGHT -> Knight(this, pos, color)
+                PieceType.PAWN -> Pawn(this, pos, color)
+                PieceType.NONE -> throw Exception("Try To add a NoPiece")
+            }
+        )
     }
 
     private fun addPiece(pieceChar: Char, pos: Int) {
@@ -68,13 +49,16 @@ class Board {
     }
 
     private fun clearBoard() {
-        for (index in board.indices) {
-            board[index] = emptyField
+        for (row in 0..7) {
+            for (col in 0..7) {
+                board[toBoardIndex(row, col)].clearField()
+            }
         }
     }
 
     fun setStartPos() {
-        initByFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0")
+//        initByFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0")
+        initByFen("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e3 0 1")
     }
 
     fun initByFen(fenString: String) {
@@ -105,9 +89,9 @@ class Board {
 
     private fun getLegalMoves(): List<Move> {
         return board
-            .filter { it.hasColor(colorToMove) }
-            .filter{it.pieceType == PieceType.KING }
-            .flatMap { piece: Piece -> piece.getMoveCandidates() }
+            .filter { it.hasPieceOfColor(colorToMove) }
+//            .filter { it.getPiece().pieceType == PieceType.KNIGHT }
+            .flatMap { it.getPiece().getMoveCandidates() }
     }
 
     //-----------------------------------------------------------------------------------------------------------------

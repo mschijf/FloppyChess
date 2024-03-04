@@ -1,4 +1,4 @@
-import uci.UciController
+import floppychess.uci.UciController
 
 fun main() {
     val controller = UciController()

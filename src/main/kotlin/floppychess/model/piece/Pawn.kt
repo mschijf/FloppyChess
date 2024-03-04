@@ -1,9 +1,9 @@
-package model.piece
+package floppychess.model.piece
 
-import model.Board
-import model.Color
-import model.Move
-import model.PieceType
+import floppychess.model.Board
+import floppychess.model.Color
+import floppychess.model.Move
+import floppychess.model.PieceType
 
 class Pawn(
     board: Board,

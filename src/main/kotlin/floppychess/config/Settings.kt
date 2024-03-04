@@ -1,4 +1,4 @@
-package config
+package floppychess.config
 
 object Settings {
     val name = "FloppyChess"

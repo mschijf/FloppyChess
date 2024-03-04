@@ -1,4 +1,4 @@
-package model
+package floppychess.model
 
 enum class Color {
     WHITE, BLACK, NONE;

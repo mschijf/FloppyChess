@@ -1,7 +1,7 @@
-package uci
+package floppychess.uci
 
-import config.Settings
-import model.Board
+import floppychess.config.Settings
+import floppychess.model.Board
 
 class UciController {
     private var continueCommunicate = true
@@ -20,7 +20,7 @@ class UciController {
 
     private fun processInput(command: String) {
         when(command.substringBefore(" ")) {
-            "uci" -> handleCommandUci()
+            "floppychess/uci" -> handleCommandUci()
             "isready" -> handleCommandIsReady()
             "ucinewgame" -> handleCommandUciNewGame()
             "position" -> handleCommandPosition(command)
