@@ -2,6 +2,8 @@ package floppychess.model
 
 import Tools.Fen.FenBoard
 import floppychess.model.piece.*
+import java.util.*
+import kotlin.collections.ArrayDeque
 
 class Board {
 
@@ -12,6 +14,8 @@ class Board {
     private var queenCastling = mutableSetOf<Color>()
     private var halfMoveCount = 0
     private var fullMoveCount = 0
+    private val movesPlayed = ArrayDeque<Move>()
+
 
     operator fun get(index: Int): Field {
         return board[index]
@@ -37,7 +41,6 @@ class Board {
                 PieceType.BISHOP -> Bishop(this, pos, color)
                 PieceType.KNIGHT -> Knight(this, pos, color)
                 PieceType.PAWN -> Pawn(this, pos, color)
-                PieceType.NONE -> throw Exception("Try To add a NoPiece")
             }
         )
     }
@@ -87,11 +90,33 @@ class Board {
         }
     }
 
+    //-----------------------------------------------------------------------------------------------------------------
+
     private fun getLegalMoves(): List<Move> {
         return board
             .filter { it.hasPieceOfColor(colorToMove) }
 //            .filter { it.getPiece().pieceType == PieceType.KNIGHT }
             .flatMap { it.getPiece().getMoveCandidates() }
+    }
+
+    fun doMove(move: Move) {
+        move.piece.moveTo(move.to)
+        if (move.isCapture())
+            move.capturedPiece!!.beCaptured()
+        board[move.to].setPiece(board[move.from].getPiece())
+        board[move.from].clearField()
+        movesPlayed.addLast(move)
+    }
+
+    fun takeBackLastMove() {
+        val move = movesPlayed.removeLast()
+        move.piece.moveTo(move.from)
+        if (move.isCapture()) {
+            move.capturedPiece!!.setOnBoard(move.to)
+            board[move.to].setPiece(move.capturedPiece)
+        } else {
+            board[move.to].clearField()
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------

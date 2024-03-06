@@ -15,6 +15,6 @@ class Queen(
         return board[pos]
             .legalQueenFieldsPerDirection
             .flatMap { dir -> getSlidingMoveToFieldIndexes(dir) }
-            .map{moveTo -> Move(this, pos, moveTo) }
+            .map{moveTo -> Move(this, pos, moveTo, board[moveTo].getPieceOrNull()) }
     }
 }

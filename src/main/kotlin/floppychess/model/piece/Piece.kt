@@ -11,6 +11,8 @@ abstract class Piece(
     val pieceType: PieceType,
     val color: Color
 ) {
+    private var isCaptured = false
+
     abstract fun getMoveCandidates(): List<Move>
 
     fun getSlidingMoveToFieldIndexes(posList: List<Int>): List<Int> {
@@ -30,4 +32,17 @@ abstract class Piece(
 
     override fun toString() =
         if (color== Color.WHITE) pieceType.pieceChar.uppercase() else pieceType.pieceChar.lowercase()
+
+    fun moveTo(to: Int) {
+        pos = to
+    }
+
+    fun beCaptured() {
+        isCaptured = true
+    }
+
+    fun setOnBoard(newPos: Int) {
+        pos = newPos
+        isCaptured = false
+    }
 }

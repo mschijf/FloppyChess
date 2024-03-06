@@ -14,6 +14,6 @@ class King(
     override fun getMoveCandidates(): List<Move> {
         return board[pos].legalKingFields
             .filter {moveTo -> board[moveTo].isEmpty() || board[moveTo].hasPieceOfColor(color.otherColor())}
-            .map{moveTo -> Move(this, pos, moveTo) }
+            .map{moveTo -> Move(this, pos, moveTo, board[moveTo].getPieceOrNull()) }
     }
 }
