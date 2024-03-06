@@ -12,7 +12,7 @@ fun getKnightMoveFields(fieldString: String):List<String> {
     )
 
     return direction
-        .map{dir -> Field(field.col+dir.col, field.row+dir.row)}
+        .map{dir -> field+dir}
         .filter { candidateField -> candidateField.isLegalField() }
         .map {legalField -> legalField.toString()}
 }
@@ -26,7 +26,7 @@ fun getKingMoveFields(fieldString: String):List<String> {
     )
 
     return direction
-        .map{dir -> Field(field.col+dir.col, field.row+dir.row)}
+        .map{dir -> field+dir}
         .filter { candidateField -> candidateField.isLegalField() }
         .map {legalField -> legalField.toString()}
 }

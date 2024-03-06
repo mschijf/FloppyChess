@@ -1,19 +1,14 @@
 package floppychess.model.piece
 
-import floppychess.model.Board
 import floppychess.model.Color
 import floppychess.model.Move
 import floppychess.model.PieceType
 
-class King(
-    board: Board,
-    pos: Int,
-    color: Color
-): Piece(board, pos, PieceType.KING, color) {
+class King(color: Color): Piece(PieceType.KING, color) {
 
     override fun getMoveCandidates(): List<Move> {
-        return board[pos].legalKingFields
-            .filter {moveTo -> board[moveTo].isEmpty() || board[moveTo].hasPieceOfColor(color.otherColor())}
-            .map{moveTo -> Move(this, pos, moveTo, board[moveTo].getPieceOrNull()) }
+        return field!!.legalKingFields
+            .filter {moveTo -> moveTo.isEmpty() || moveTo.hasPieceOfColor(color.otherColor())}
+            .map{moveTo -> Move(this, field!!, moveTo, moveTo.getPieceOrNull(), if (moveTo.isEmpty()) null else moveTo) }
     }
 }

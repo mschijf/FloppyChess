@@ -1,29 +1,25 @@
 package floppychess.model.piece
 
-import floppychess.model.Board
-import floppychess.model.Color
-import floppychess.model.Move
-import floppychess.model.PieceType
+import floppychess.model.*
 
 abstract class Piece(
-    val board: Board,
-    var pos: Int,
     val pieceType: PieceType,
     val color: Color
 ) {
-    private var isCaptured = false
+    var field: Field? = null
+        private set
 
     abstract fun getMoveCandidates(): List<Move>
 
-    fun getSlidingMoveToFieldIndexes(posList: List<Int>): List<Int> {
-        val tmp = mutableListOf<Int>()
+    fun getSlidingMoveToFieldIndexes(fieldList: List<Field>): List<Field> {
+        val tmp = mutableListOf<Field>()
         var i = 0
-        while (i < posList.size && board[posList[i]].isEmpty()) {
-            tmp += posList[i]
+        while (i < fieldList.size && fieldList[i].isEmpty()) {
+            tmp += fieldList[i]
             i++
         }
-        if (i < posList.size && board[posList[i]].hasPieceOfColor(color.otherColor())) {
-            tmp += posList[i]
+        if (i < fieldList.size && fieldList[i].hasPieceOfColor(color.otherColor())) {
+            tmp += fieldList[i]
         }
         return tmp
     }
@@ -33,16 +29,21 @@ abstract class Piece(
     override fun toString() =
         if (color== Color.WHITE) pieceType.pieceChar.uppercase() else pieceType.pieceChar.lowercase()
 
-    fun moveTo(to: Int) {
-        pos = to
+    fun moveTo(to: Field) {
+        removeFromBoard()
+        setOnBoard(to)
     }
 
-    fun beCaptured() {
-        isCaptured = true
+    fun removeFromBoard() {
+        field!!.clearField()
+        field = null
     }
 
-    fun setOnBoard(newPos: Int) {
-        pos = newPos
-        isCaptured = false
+    fun setOnBoard(newField: Field) {
+        newField.setPiece(this)
+        field = newField
     }
+
+    fun isOnBoard() = field != null
+    fun isCaptured() = !isOnBoard()
 }

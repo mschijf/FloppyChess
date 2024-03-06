@@ -2,16 +2,12 @@ package floppychess.model.piece
 
 import floppychess.model.*
 
-class Rook(
-    board: Board,
-    pos: Int,
-    color: Color
-): Piece(board, pos, PieceType.ROOK, color) {
+class Rook(color: Color): Piece(PieceType.ROOK, color) {
 
     override fun getMoveCandidates(): List<Move> {
-        return board[pos]
+        return field!!
             .legalRookFieldsPerDirection
             .flatMap{ dir -> getSlidingMoveToFieldIndexes(dir) }
-            .map{moveTo -> Move(this, pos, moveTo, board[moveTo].getPieceOrNull()) }
+            .map{moveTo -> Move(this, field!!, moveTo, moveTo.getPieceOrNull(), if (moveTo.isEmpty()) null else moveTo) }
     }
 }

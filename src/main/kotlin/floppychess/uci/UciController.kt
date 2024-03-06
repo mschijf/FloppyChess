@@ -53,7 +53,7 @@ class UciController {
         //position startpos moves e2e4 e7e5
         //position fen rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1 moves ....
         if (position.startsWith("startpos")) {
-            board.setStartPos()
+            board.setStartPosition()
         } else if (position.startsWith("fen")) {
             board.initByFen(position.substringAfter("fen "))
         } else {
@@ -62,7 +62,7 @@ class UciController {
     }
 
     private fun handleCommandUciNewGame() {
-        board.setStartPos()
+        board.setStartPosition()
     }
 
     private fun handleShow() {

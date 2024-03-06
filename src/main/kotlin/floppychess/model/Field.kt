@@ -6,12 +6,13 @@ import floppychess.tools.getKingMoveFields
 import floppychess.tools.getKnightMoveFields
 import floppychess.tools.getRookMoveFields
 
-class Field(val boardIndex: Int) {
+class Field(val name: String) {
     private var piece: Piece? = null
     fun isEmpty() = piece == null
     fun hasPieceOfColor(color: Color) = piece != null && piece!!.hasColor(color)
 
     fun setPiece(aPiece: Piece) {
+        check(piece==null ) {"Trying to put a piece on a field that is not empty: ${this.toString()}"}
         piece = aPiece
     }
     fun clearField() {
@@ -21,24 +22,24 @@ class Field(val boardIndex: Int) {
     fun getPieceOrNull() = piece
     fun getPiece() = piece!!
 
-    override fun toString(): String {
-        return if (piece == null) "." else piece!!.toString()
+    override fun toString() = "$name: $piece"
+
+    var legalKingFields: List<Field> = emptyList()
+        private set
+    var legalKnightFields: List<Field> = emptyList()
+        private set
+    var legalRookFieldsPerDirection: List<List<Field>> = emptyList()
+        private set
+    var legalBishopFieldsPerDirection: List<List<Field>> = emptyList()
+        private set
+    var legalQueenFieldsPerDirection: List<List<Field>> = emptyList()
+        private set
+
+    fun initReachableFields(fieldMap: Map<String, Field>) {
+        legalKingFields = getKingMoveFields(name).map { fieldMap[it]!! }
+        legalKnightFields = getKnightMoveFields(name).map { fieldMap[it]!! }
+        legalRookFieldsPerDirection = getRookMoveFields(name).map { slidingList -> slidingList.map{ fieldMap[it]!! } }
+        legalBishopFieldsPerDirection = getBishopMoveFields(name).map { slidingList -> slidingList.map{ fieldMap[it]!! } }
+        legalQueenFieldsPerDirection = legalRookFieldsPerDirection + legalBishopFieldsPerDirection
     }
-
-    val legalKingFields: List<Int> =
-        getKingMoveFields(Board.toFieldString(boardIndex))
-            .map { Board.toBoardIndex(it) }
-    val legalKnightFields: List<Int> =
-        getKnightMoveFields(Board.toFieldString(boardIndex))
-            .map { Board.toBoardIndex(it) }
-    val legalRookFieldsPerDirection: List<List<Int>> =
-        getRookMoveFields(Board.toFieldString(boardIndex))
-            .map { slidingList -> slidingList.map{Board.toBoardIndex(it) } }
-    val legalBishopFieldsPerDirection: List<List<Int>> =
-        getBishopMoveFields(Board.toFieldString(boardIndex))
-            .map { slidingList -> slidingList.map{Board.toBoardIndex(it) } }
-    val legalQueenFieldsPerDirection: List<List<Int>> =
-        legalRookFieldsPerDirection + legalBishopFieldsPerDirection
-
-
 }

@@ -1,20 +1,15 @@
 package floppychess.model.piece
 
-import floppychess.model.Board
 import floppychess.model.Color
 import floppychess.model.Move
 import floppychess.model.PieceType
 
-class Queen(
-    board: Board,
-    pos: Int,
-    color: Color
-): Piece(board, pos, PieceType.QUEEN, color) {
+class Queen(color: Color): Piece(PieceType.QUEEN, color) {
 
     override fun getMoveCandidates(): List<Move> {
-        return board[pos]
+        return field!!
             .legalQueenFieldsPerDirection
             .flatMap { dir -> getSlidingMoveToFieldIndexes(dir) }
-            .map{moveTo -> Move(this, pos, moveTo, board[moveTo].getPieceOrNull()) }
+            .map{moveTo -> Move(this, field!!, moveTo, moveTo.getPieceOrNull(), if (moveTo.isEmpty()) null else moveTo) }
     }
 }

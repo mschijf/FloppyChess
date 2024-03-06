@@ -2,12 +2,10 @@ package floppychess.model
 
 import Tools.Fen.FenBoard
 import floppychess.model.piece.*
-import java.util.*
 import kotlin.collections.ArrayDeque
 
 class Board {
 
-    private val board = List<Field>(64) { index -> Field(index) }
     private var colorToMove = Color.WHITE
     private var epFieldIndex = -1
     private var kingCastling = mutableSetOf<Color>()
@@ -15,14 +13,16 @@ class Board {
     private var halfMoveCount = 0
     private var fullMoveCount = 0
     private val movesPlayed = ArrayDeque<Move>()
-
-
-    operator fun get(index: Int): Field {
-        return board[index]
-    }
+    private val board =
+        ('1'..'8').map{ row ->
+            ('a'..'h').map { col ->
+                Field("$col$row")
+            }
+        }.flatten().associateBy { field -> field.name }
 
     init {
-        setStartPos()
+        board.values.forEach { field -> field.initReachableFields(board) }
+        setStartPosition()
     }
 
     companion object {
@@ -32,61 +32,56 @@ class Board {
     }
 
 
-    private fun addPiece(pieceType: PieceType, color: Color, pos: Int) {
-        board[pos].setPiece(
-            when (pieceType) {
-                PieceType.KING -> King(this, pos, color)
-                PieceType.QUEEN -> Queen(this, pos, color)
-                PieceType.ROOK -> Rook(this, pos, color)
-                PieceType.BISHOP -> Bishop(this, pos, color)
-                PieceType.KNIGHT -> Knight(this, pos, color)
-                PieceType.PAWN -> Pawn(this, pos, color)
-            }
-        )
+    private fun putPieceOnBoard(pieceType: PieceType, color: Color, fieldName: String) {
+        val piece = when (pieceType) {
+            PieceType.KING -> King(color)
+            PieceType.QUEEN -> Queen(color)
+            PieceType.ROOK -> Rook(color)
+            PieceType.BISHOP -> Bishop(color)
+            PieceType.KNIGHT -> Knight(color)
+            PieceType.PAWN -> Pawn(color)
+        }
+        piece.setOnBoard(board[fieldName]!!)
     }
 
-    private fun addPiece(pieceChar: Char, pos: Int) {
+    private fun putPieceOnBoard(pieceChar: Char, fieldName: String) {
         val pieceType = PieceType.ofChar(pieceChar)
         val color = if (pieceChar.isLowerCase()) Color.BLACK else Color.WHITE
-        addPiece(pieceType, color, pos)
+        putPieceOnBoard(pieceType, color, fieldName)
     }
 
     private fun clearBoard() {
-        for (row in 0..7) {
-            for (col in 0..7) {
-                board[toBoardIndex(row, col)].clearField()
-            }
-        }
+        board.values.forEach { field -> field.clearField() }
     }
 
-    fun setStartPos() {
+    fun setStartPosition() {
 //        initByFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0")
         initByFen("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e3 0 1")
     }
 
     fun initByFen(fenString: String) {
         val fen = FenBoard(fenString)
-        fen.fillBoardByFen()
-        fen.setCastling()
+        fillBoardByFen(fen)
+        setCastling(fen)
         colorToMove = if (fen.whiteToMove) Color.WHITE else Color.BLACK
         epFieldIndex = if (fen.epField != null) toBoardIndex(fen.epField) else -1
         halfMoveCount = fen.halfMoveCount
         fullMoveCount = fen.fullMoveCount
     }
 
-    private fun FenBoard.setCastling() {
+    private fun setCastling(fen: FenBoard) {
         kingCastling.clear()
         queenCastling.clear()
-        if (this.whiteKingCastlingAllowed) kingCastling += Color.WHITE
-        if (this.blackKingCastlingAllowed) kingCastling += Color.BLACK
-        if (this.whiteQueenCastlingAllowed) queenCastling += Color.WHITE
-        if (this.blackQueenCastlingAllowed) queenCastling += Color.BLACK
+        if (fen.whiteKingCastlingAllowed) kingCastling += Color.WHITE
+        if (fen.blackKingCastlingAllowed) kingCastling += Color.BLACK
+        if (fen.whiteQueenCastlingAllowed) queenCastling += Color.WHITE
+        if (fen.blackQueenCastlingAllowed) queenCastling += Color.BLACK
     }
 
-    private fun FenBoard.fillBoardByFen() {
+    private fun fillBoardByFen(fen: FenBoard) {
         clearBoard()
-        this.occupiedFields.forEach { (fieldString, pieceChar) ->
-            addPiece(pieceChar, toBoardIndex(fieldString))
+        fen.occupiedFields.forEach { (fieldString, pieceChar) ->
+            putPieceOnBoard(pieceChar, fieldString)
         }
     }
 
@@ -94,54 +89,50 @@ class Board {
 
     private fun getLegalMoves(): List<Move> {
         return board
-            .filter { it.hasPieceOfColor(colorToMove) }
+            .values
+            .filter { field -> field.hasPieceOfColor(colorToMove) }
 //            .filter { it.getPiece().pieceType == PieceType.KNIGHT }
             .flatMap { it.getPiece().getMoveCandidates() }
     }
 
     fun doMove(move: Move) {
-        move.piece.moveTo(move.to)
         if (move.isCapture())
-            move.capturedPiece!!.beCaptured()
-        board[move.to].setPiece(board[move.from].getPiece())
-        board[move.from].clearField()
+            move.capturedPiece!!.removeFromBoard()
+        move.piece.moveTo(move.to)
         movesPlayed.addLast(move)
     }
 
     fun takeBackLastMove() {
         val move = movesPlayed.removeLast()
         move.piece.moveTo(move.from)
-        if (move.isCapture()) {
-            move.capturedPiece!!.setOnBoard(move.to)
-            board[move.to].setPiece(move.capturedPiece)
-        } else {
-            board[move.to].clearField()
-        }
+        if (move.isCapture())
+            move.capturedPiece!!.setOnBoard(move.capturedField!!)
     }
 
     //-----------------------------------------------------------------------------------------------------------------
 
     fun toAsciiBoard(): String {
-        val asciiBoard = (7 downTo 0).joinToString ("\n"){ row ->
-            (0..7).joinToString (""){ col ->
-                board[toBoardIndex(row, col)].toString()
+        val asciiBoard = ('8' downTo '1').joinToString ("\n"){ row ->
+            ('a'..'h').joinToString (""){ col ->
+                val piece = board["$col$row"]!!.getPieceOrNull()
+                piece?.toString() ?: "."
             }
         }
-        return asciiBoard + "\n" + getLegalMoves()
+        return asciiBoard + "\n" + toFenString() + "\n" + getLegalMoves()
     }
 
     fun toFenString(): String {
-        val fenPosition = (7 downTo 0).joinToString ("/"){ row ->
+        val fenPosition = ('8' downTo '1').joinToString ("/"){ row ->
             val sb = StringBuilder()
             var emptyCount = 0
-            for (col in 0..7) {
-                if (board[toBoardIndex(row, col)].isEmpty()) {
+            for (col in 'a'..'h') {
+                if (board["$col$row"]!!.isEmpty()) {
                     emptyCount++
                 } else {
                     if (emptyCount > 0)
                         sb.append(emptyCount)
                     emptyCount = 0
-                    sb.append(board[toBoardIndex(row, col)].toString())
+                    sb.append(board["$col$row"]!!.getPieceOrNull().toString() ?: ".")
                 }
             }
             if (emptyCount > 0)
