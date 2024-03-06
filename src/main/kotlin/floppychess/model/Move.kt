@@ -11,7 +11,7 @@ data class Move(
     val capturedField: Field?) {
 
     override fun toString(): String {
-        return piece.toString() + from.name + to.name
+        return "${if (piece.pieceType == PieceType.PAWN) "" else piece.toString()}${from.name}${to.name}"
     }
 
     fun isCapture() = capturedPiece != null

@@ -61,6 +61,45 @@ fun getRookMoveFields(fieldString: String):List<List<String>> {
     return direction.map { dir -> getSlidingMoves(field, dir) }
 }
 
+fun getPawnMoveFields(fieldString: String, colorIsWhite: Boolean):List<String> {
+    return getPawnMoveFields(fieldString, if (colorIsWhite) 1 else 6, if (colorIsWhite) 1 else -1)
+}
+
+fun getPawnCaptureFields(fieldString: String, colorIsWhite: Boolean):List<String> {
+    return getPawnCaptureFields(fieldString, if (colorIsWhite) 1 else -1)
+}
+
+private fun getPawnMoveFields(fieldString: String, startRow: Int, direction: Int):List<String> {
+    check(legalField(fieldString)) { "Illegal chess board field: $fieldString" }
+    val field = Field.ofFieldString(fieldString)
+    return when (field.row) {
+        0, 7 -> emptyList()
+        startRow -> {
+            listOf(Field(0, 1*direction), Field(0, 2*direction))
+                .map{dir -> field+dir}
+                .filter { candidateField -> candidateField.isLegalField() }
+                .map {legalField -> legalField.toString()}
+        }
+        else -> {
+            listOf(Field(0, 1*direction))
+                .map{dir -> field+dir}
+                .filter { candidateField -> candidateField.isLegalField() }
+                .map {legalField -> legalField.toString()}
+        }
+    }
+}
+
+private fun getPawnCaptureFields(fieldString: String, direction: Int):List<String> {
+    check(legalField(fieldString)) { "Illegal chess board field: $fieldString" }
+    val field = Field.ofFieldString(fieldString)
+    return if (field.row == 0 || field.row == 7)
+        emptyList()
+    else
+        listOf(Field(-1, 1*direction), Field(1, 1*direction))
+        .map{dir -> field+dir}
+        .filter { candidateField -> candidateField.isLegalField() }
+        .map {legalField -> legalField.toString()}
+}
 
 
 private data class Field(val col: Int, val row: Int) {

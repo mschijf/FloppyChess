@@ -7,7 +7,6 @@ import kotlin.collections.ArrayDeque
 class Board {
 
     private var colorToMove = Color.WHITE
-    private var epFieldIndex = -1
     private var kingCastling = mutableSetOf<Color>()
     private var queenCastling = mutableSetOf<Color>()
     private var halfMoveCount = 0
@@ -24,13 +23,6 @@ class Board {
         board.values.forEach { field -> field.initReachableFields(board) }
         setStartPosition()
     }
-
-    companion object {
-        private fun toBoardIndex(row: Int, col: Int) = row * 8 + col
-        fun toBoardIndex(field: String) = toBoardIndex(field[1]-'1', field[0]-'a')
-        fun toFieldString(fieldIndex: Int) = ('a' + (fieldIndex % 8)).toString() + ('1' + (fieldIndex / 8)).toString()
-    }
-
 
     private fun putPieceOnBoard(pieceType: PieceType, color: Color, fieldName: String) {
         val piece = when (pieceType) {
@@ -56,7 +48,7 @@ class Board {
 
     fun setStartPosition() {
 //        initByFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0")
-        initByFen("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e3 0 1")
+        initByFen("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/1PPP1PPP/RNBQKBNR w KQkq e3 0 1")
     }
 
     fun initByFen(fenString: String) {
@@ -64,7 +56,7 @@ class Board {
         fillBoardByFen(fen)
         setCastling(fen)
         colorToMove = if (fen.whiteToMove) Color.WHITE else Color.BLACK
-        epFieldIndex = if (fen.epField != null) toBoardIndex(fen.epField) else -1
+        if (fen.epField != null) board[fen.epField]!!.setEp()
         halfMoveCount = fen.halfMoveCount
         fullMoveCount = fen.fullMoveCount
     }
@@ -132,7 +124,7 @@ class Board {
                     if (emptyCount > 0)
                         sb.append(emptyCount)
                     emptyCount = 0
-                    sb.append(board["$col$row"]!!.getPieceOrNull().toString() ?: ".")
+                    sb.append(board["$col$row"]!!.getPiece())
                 }
             }
             if (emptyCount > 0)
@@ -143,7 +135,8 @@ class Board {
         sb.append(" ")
         sb.append(if (colorToMove == Color.WHITE) "w" else "b")
         sb.append(" ")
-        sb.append(if (epFieldIndex >= 0) toFieldString(epFieldIndex) else "-")
+        val epField = board.values.firstOrNull { f -> f.isEpField() }
+        sb.append(epField?.name ?: "-")
         sb.append(" ")
         if (Color.WHITE in kingCastling) sb.append("K")
         if (Color.WHITE in queenCastling) sb.append("Q")

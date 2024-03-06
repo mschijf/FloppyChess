@@ -11,17 +11,29 @@ abstract class Piece(
 
     abstract fun getMoveCandidates(): List<Move>
 
-    fun getSlidingMoveToFieldIndexes(fieldList: List<Field>): List<Field> {
-        val tmp = mutableListOf<Field>()
-        var i = 0
-        while (i < fieldList.size && fieldList[i].isEmpty()) {
-            tmp += fieldList[i]
-            i++
-        }
-        if (i < fieldList.size && fieldList[i].hasPieceOfColor(color.otherColor())) {
-            tmp += fieldList[i]
-        }
-        return tmp
+    fun getJumpFieldMoves(fieldList: List<Field>): List<Move> {
+        return fieldList
+            .filter {moveTo -> moveTo.isEmpty() || moveTo.hasPieceOfColor(color.otherColor())}
+            .map{moveTo -> Move(this, field!!, moveTo, moveTo.getPieceOrNull(), if (moveTo.isEmpty()) null else moveTo) }
+    }
+
+    fun getSlidingMoves(listOfFieldList: List<List<Field>>): List<Move> {
+        val sliders = listOfFieldList
+            .flatMap { fieldList -> getSlidingMoveToFields(fieldList) }
+            .map{moveTo -> Move(this, field!!, moveTo, null, null) }
+        val captures = listOfFieldList
+            .mapNotNull { fieldList -> getSlidingCaptureField(fieldList) }
+            .map{moveTo -> Move(this, field!!, moveTo, moveTo.getPieceOrNull(), if (moveTo.isEmpty()) null else moveTo) }
+        return sliders+captures
+    }
+
+    private fun getSlidingMoveToFields(fieldList: List<Field>): List<Field> {
+        return fieldList.takeWhile { field -> field.isEmpty() }
+    }
+
+    private fun getSlidingCaptureField(fieldList: List<Field>): Field? {
+        val firstPieceAfterSlide = fieldList.dropWhile { field -> field.isEmpty() }.firstOrNull()
+        return if (firstPieceAfterSlide?.hasPieceOfColor(color.otherColor()) == true) firstPieceAfterSlide else null
     }
 
     fun hasColor(checkColor: Color) = checkColor == color
